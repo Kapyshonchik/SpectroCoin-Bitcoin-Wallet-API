@@ -1,0 +1,1973 @@
+FORMAT: 1A
+HOST: https://spectrocoin.com/
+
+# SpectroCoin Bitcoin API
+
+## Overview
+
+[SpectroCoin](https://spectrocoin.com/) is the all in one solution for bitcoin and other cryptocurrencies. It has four main products:
+> + [Bitcoin Exchange](https://spectrocoin.com/en/bitcoin-exchange.html)
+> + [Bitcoin Wallet](https://spectrocoin.com/en/bitcoin-wallet.html)
+> + [Bitcoin Debit Card](https://spectrocoin.com/en/bitcoin-debit-card.html)
+> + [Bitcoin Payment Processor](https://spectrocoin.com/en/accept-bitcoin-payments.html)
+
+SpectroCoin API allows to access most of its services through programming interface. API integration allows to easy buy, send and sell bitcoin and other digital currencies. 
+
+This document describes SpectroCoin API specifications and provides examples how to use it.
+
+SpectroCoin also offers Bitcoin payment gateway plugins for these eCommerce platforms:
+
+
+> + [WHMCS](https://spectrocoin.com/en/plugins/accept-bitcoin-whmcs.html)
+> + [PrestaShop](https://spectrocoin.com/en/plugins/accept-bitcoin-prestashop.html)
+> + [OpenCart](https://spectrocoin.com/en/plugins/accept-bitcoin-opencart.html)
+> + [Magento](https://spectrocoin.com/en/plugins/accept-bitcoin-magento.html)
+> + [Drupal](https://spectrocoin.com/en/plugins/accept-bitcoin-drupal.html)
+> + [WordPress](https://spectrocoin.com/en/plugins/accept-bitcoin-wordpress-woocommerce.html)
+> + [ZenCart](https://github.com/SpectroCoin/Zencart-Bitcoin-Payment-Gateway-Plugin)
+> + [VirtueMart](https://github.com/SpectroCoin/Joomla-Virtuemart-Bitcoin-Payment-Gateway-Extension)
+> + [Magento-2](https://github.com/SpectroCoin/Magento-2-Bitcoin-Payment-Gateway-Extension)
+
+
+
+## Bitcoin Wallet API
+
+The SpectroCoin Bitcoin Wallet API is a REST based web service. The root REST API address is ``https://spectrocoin.com/api/r/wallet``. It accepts ``GET`` or ``POST`` (``application/json``) requests and responses are returned in ``application/json`` content type.
+API authentication is performed using OAuth2 (``https://spectrocoin.com/api/r/oauth2``). 
+
+### How to start?
+
+* First you must have a SpectroCoin account. If you do not have one you can create it **[here](https://spectrocoin.com/en/signup.html)**.
+* Second you have to create a SpectroCoin Wallet instance. You can do it **[here](https://spectrocoin.com/en/walletAPI.html)** by clicking on "Create API"
+### Resource Identifiers
+
++ SpectroCoin API is REST based web service. Accept ``GET`` or ``POST`` (``application/json``) requests. Responses are ``application/json`` content type.
+
++ API authentication is performed using OAuth2 (``/oauth2``). 
+
++ Wallet and exchange functions is accessible through ``/wallet``.
+
++ Root REST API address: ``https://spectrocoin.com/api/r/``
+
++ Wallet API can return specific response object (HTTP **200**), validation error (HTTP **203**), suspicious activity error (HTTP **403**) or internal error (HTTP **500**).
+
+![](https://raw.githubusercontent.com/SpectroFinance/SpectroCoin-Wallet-API/master/wallet%20api.jpg)
+
+<br><br/>
+
+### Authorization
+
+1. To get access tokens (access and refresh tokens) you must call [**/oauth2/auth**](#reference/bitcoin-wallet/obtaining-an-access-token/example:-obtaining-an-access-token) REST method providing required fields.
+2. Response will contain token information (access_token, refresh_token, scope, expires_in..). Access tokens are necessarily to be build Authorization header value.
+3. All other REST methods within security scope **must have extra HTTP header** - ``Authorization``. Value should start with the access token as a Bearer.
+``Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625``
+
+<br><br/>
+
+### Scopes
+
+The scope parameter is used to indicate a list of permissions that are requested by the client. List of scopes should be separated with space. Example: ``send_currency currency_exchange user_account``.
+
+> + `send_currency` to send currency to receiver.
+> + `currency_exchange` to buy or sell currency or calculate pay or receive amounts at the current moment.
+> + `user_account` to get new/last crypto deposit address, user accounts information and account history.
+
+The scope parameter is useful for security so you can choose how many you need. For example you need to be able just for `send_currency` or you want to do everything so you can use all of them.
+
+The scope parameter can be set while creating or editing Wallet API in **[Wallet API list](https://spectrocoin.com/en/walletAPI.html)** section.
+
+<br><br/>
+
+### Access Tokens Lifetime
+
+These tokens have a finite lifetime, so you must keep track when an access token expires. To do this you can use ``expires_in`` value returned in the response from the
+token request (the value is expressed in seconds), or handle the error response (``1004``) from the API endpoint once an expired token is detected. Once access token expires, you need to get new token by using refresh token. If refresh token is expired, then you need to start new authentication session.
+
+<br><br/>
+
+### Obtaining an Access Token
+
+Method to authenticate user and get access tokens to use for wallet REST API. Refresh token is used to issue new access tokens when original access token expire.
+
+ ***[MORE](#reference/bitcoin-wallet/obtaining-an-access-token)***
+
+<br><br/>
+
+### Renewing an Access Token
+
+Method to exchange user wallet REST API refresh token to a new pair of OAuth2 tokens.
+
+***[MORE](#reference/bitcoin-wallet/renewing-an-access-token)***
+
+<br><br/>
+
+### Send Options
+
+***Send***
+
+Method to send bitcoins or any other currency to a crypto address or an email address.
+
+Transactions fees may apply depending on the currency and type of destination. If transaction fees are applied receiver will receive full amount if sender has enough balance to cover possible additional fee. Otherwise fees will be deducted from the amount.
+
+Transactions between SpectroCoin wallets are free.
+***[MORE](#reference/bitcoin-wallet/send-money)***
+
+***Bulk Send***
+
+Method to process more than one send transaction i.e. to send mass payments. Allows to easily process bulk payments from your applications such as faucets, affiliate programs or other platforms.
+
+The payments are aggregated, hence transactions are cheaper than done individually.
+***[MORE](#reference/bitcoin-wallet/bulk-send)***
+
+<br><br/>
+
+### Receive Options 
+
+***Get Address***
+
+Method to get a current BTC, DASH, XEM, ETH address.
+
+***[MORE](#reference/bitcoin-wallet/get-bitcoin-address)***
+
+***Generate New Address***
+
+Method used to generate new crypto address.
+
+***[MORE](#reference/bitcoin-wallet/generate-new-address)***
+
+<br><br/>
+
+### Exchange Operations
+
+***Calculate Buy Order***
+
+Method to calculate a required amount to buy a given amount of a desired currency.
+***[MORE](#reference/bitcoin-wallet/calculate-buy-order)***
+
+***Exchange Buy Order***
+
+Method to execute a buy order.
+
+***[MORE](#reference/bitcoin-wallet/exchange-buy-order)***
+
+***Calculate Sell Currency***
+
+Method to calculate an amount of proceedings of a sell order providing an amount to be sold.
+
+***[MORE](#reference/bitcoin-wallet/calculate-sell-order)***
+
+***Exchange Sell Currency***
+
+Method to execute a sell order.
+
+***[MORE](#reference/bitcoin-wallet/exchange-sell-order)***
+
+<br><br/>
+
+### User Crypto Payment Information
+
+Method to get information about user's crypto payment
+
+***[MORE](#reference/bitcoin-wallet/crypto-payment-info)***
+
+### User Accounts Information
+
+Method to get information about user's accounts.
+
+***[MORE](#reference/bitcoin-wallet/user-accounts-info)***
+
+### Account History
+
+Method to get paged transaction history of user's accounts.
+
+***[MORE](#reference/bitcoin-wallet/history)***
+
+<br><br/>
+
+### Errors
+
+Invalid request or internal errors will result HTTP response with code **500**.
+
+**Validation error**
+
+Validation errors will result HTTP response with code **203**. Response is an array of error information:
+
+Field | Type | Required  | Example
+------|-------|-----------|--------
+code | Short | + | 1
+message | String | + | Unable to sell Bitcoin
+
+```http
+[
+    {
+      "code":1005,
+      "message":"Unknown value: BTR"
+    }
+]
+```
+
+**Error codes**
+
+List of all error codes:
+
+Code | Message
+------|-------
+1 |  Invalid validation (dynamic message)
+97 | Unsupported media type
+100 |  Unexpected error
+1001 |  {value} can't be null
+1002 |  {amount} should be more than zero
+1003 | Forbidden
+1004 | Unauthorized
+1005 | Unknown value: ???
+1008 | Amount should be more than {amount} {currency}
+1012 | {currency} is not crypto currency!
+2001 | Specified client not found for this credentials. client_id: {client_id}, version: {version}
+2002 | Application for this user is disabled
+2003 | Refresh token expired, please authenticate
+3001 | Balance not enough to send
+3002 | Invalid email or address
+3003 | Invalid email address
+3005 | Sender and receiver should be different
+3006 | Amount too small to send
+3016 | Destination count reached. Max allowed destinations: {count}
+3017 | Data have empty fields
+3020 | Incorrect receiver.
+3021 | Destination count reached. Max allowed fiat destinations: {count}
+3027 | Send currency failed
+3032 | You have already sent money with this refId
+3030 | Failed to get crypto payment
+3031 | Bad payment id
+5003 | User not verified
+5021 | Unsupported multiple coins send to email address
+6001 | Member account {accountId} not found for this user.
+7004 | Not enough funds {amount{currency}} to pay {amount{currency}} for {amount{currency}} buy
+7006 | Exceeds {period} user pay limit! - {amount} {currency}
+7007 | Exceeds {period} user receive limit! - {amount} {currency}
+7008 | Unsupported currency exchange.
+7009 | Pay amount can't be smaller than {amount} {currency}
+7010 | Receive amount can't be smaller than {amount} {currency}
+13023 | New crypto address generation limit reached
+
+<br><br/>
+
+### Wallet API Client Libraries
+
+**Example applications for Wallet API**
+
+We have prepared SpectroCoin Bitcoin Wallet API client applications for JAVA and PHP (we are planning to prepare solutions for other languages such as Python or Ruby soon). Feel free to customize them for your needs.
+
+***Java***
+
+Simple SpectroCoin Bitcoin Wallet API JAVA client can be found **[here](https://github.com/SpectroCoin/Bitcoin-Wallet-Java)**.
+
+***PHP***
+
+Simple PHP application ***coming soon***.
+
+<br></br>
+<br></br>
+<br></br>
+<br></br>
+
+## Merchant API
+
+### How to get started? 
+
+* First you have to have a wallet at SpectroCoin. If you do not have one, you can [create a free bitcoin wallet here](https://spectrocoin.com/en/signup.html).
+* Second you have to create a new merchant project at "Account" - > "Projects" (under merchant subsection [SpectroCoin API](https://spectrocoin.com/en/merchant/api/create.html)).
+* Third you have to generate Private and Public keys pair (can be done while creating a new project in [Spectrocoin.com](https://spectrocoin.com/en/merchant/api/create.html)).
+
+<br><br/>
+
+### Create Order
+
+Order is a payment request for a specific client. An order has a fixed amount to be received, usually denominated in a fiat currency. In addition it also has an amount to be paid in bitcoins (or other cryptocurrency). The order is sent by merchant to clients to allow them to pay in bitcoins, while merchant can receive his prefered currency (USD, EUR, GBP, CNY or other).
+
+***[MORE](#reference/merchant/create-order)***
+
+<br><br/>
+
+
+
+### Callback
+
+If requested while initiating an order SpectroCoin will return callbacks to merchant's definied callback url. Callback provides information about the current order status.
+Merchant's callback url must return HTTP Response **200** with content: **\*ok*** for SpectroCoin API to confirm callback as successful.
+
+***[MORE](#reference/merchant/callback)***
+
+<br><br/>
+
+### Signature
+
+All Merchant API requests must be signed using the private key associated to the project, so they can be validated by SpectroCoin using associated public key. Merchant should generate or provide a public key during Merchant API's configuration.
+
+Some API request may result in a callback from SpectroCoin, such callbackes are signed by SpectroCoin and must be validated by merchant using [SpectroCoin Merchant Public Key](https://spectrocoin.com/files/merchant.public.pem).
+
+**Merchant key pair**
+
+You should create a pair of private and public keys ([Wiki](http://en.wikipedia.org/wiki/Public-key_cryptography)) for each project's Merchant API for your requests to be signed and validated by SpectroCoin.
+
+**Private key** must be kept safely by merchant without any disclosure.
+
+**Public key** must be inserted into configuration of specific project's Merchant API (Create/Edit form of API details). This key will be used to check signature validity of any Merchant API request signed by a specific merchant and for a specific project.
+
+**Private and public key generation using SpectroCoin**
+
+Open [Merchant API setup](https://spectrocoin.com/en/merchant/api/create.html) window or click "Edit" an existing project.
+Click "Generate" button near the "Public Key" field and a new key pair will be generated.
+Download private key and keep it safe.
+Save project's Merchant API configuration with the newly generated public key.
+
+**Private key generation with OpenSSL**
+
+```shell
+# generate a 2048-bit RSA private key
+openssl genrsa -out "C:\private.pem" 2048
+
+# convert private Key to PKCS#8 format (if you use Java)
+openssl pkcs8 -topk8 -inform PEM -outform DER -in "C:\private.pem" -out "C:\private.der" -nocrypt
+```
+
+**Public key generation with OpenSSL**
+
+```shell
+# output public key portion in PEM format
+openssl rsa -in "C:\private.pem" -pubout -outform PEM -out "C:\public.pem"
+```
+
+**Signing request**
+
+Request to be signed must be converted to **UTF-8 URL encoded concatenated parameters**, consisting of a one string line, including parameters' names, which are ordered in a specific sequence specified in the documentation.
+
+Request's data to be signed must be:
+
+* URL encoded
+* Spaces must be encoded with "**+**" sign (not "%20"):
+```
+&description=Some+string
+```
+* Numbers must be formatted with **0.0#######** number format:
+```
+null => 0.0
+0 => 0.0
+0.0 => 0.0
+1.1 => 1.1
+1.123 => 1.123
+```
+* **All** request fields should be included for signature generation even if they don't have value set.
+
+Example request data to be signed:
+```
+merchantId=87&apiId=1&orderId=&payCurrency=BTC&payAmount=0.0&receiveCurrency=USD&receiveAmount=15.99&description=Payment+for+Order-2547&payerEmail=&payerName=&payerSurname=&culture=&callbackUrl=https%3A%2F%2Fmerchant.com%2Fcallback%3Fuser%3D123&successUrl=https%3A%2F%2Fmerchant.com%2Fsuccess%3Fuser%3D123&failureUrl=https%3A%2F%2Fmerchant.com%2Ffailure%3Fuser%3D123
+```
+
+Signature must be **Base64 encoded**. Example:
+```
+J1lDaNzp7FI+kjjDbjHgZ8CUfGJBxoacfTYmNGPG05GCuKQ18erfzookLSapgiUXHz3hzXt3/hW4tY5vsYCh6PY7IUgdNC8VjlaNMqtUclMEFc+p1bt/ttKYYJV35eE9hhiFF7qwQuMEzkrcJKfTmy5uB/K07vJBfjP8FHu4ap3kR1XjYYgZgE+hrtwKxaWTYZNigt8Y6phlYcaqZPiiUVYInIYov1+ahy9pozMXjpYlIMWtEDI8AEYNz8HE+Yfs1vTUnUDwM72hwRarhpCSz4fKRee/Nwqq6ZvnXWWKosInzuUynmvHcF8bDjJkxkg72t4BOWBxBrmi4rOYqdQH9A==
+```
+
+**Java signing**
+
+```java
+String formValue = "merchantId=87&apiId=1&orderId=&payCurrency=BTC&payAmount=0.0&receiveCurrency=USD&receiveAmount=15.99&description=Payment+for+Order-2547&payerEmail=&payerName=&payerSurname=&culture=&callbackUrl=https%3A%2F%2Fmerchant.com%2Fcallback%3Fuser%3D123&successUrl=https%3A%2F%2Fmerchant.com%2Fsuccess%3Fuser%3D123&failureUrl=https%3A%2F%2Fmerchant.com%2Ffailure%3Fuser%3D123";
+Signature ourSign = Signature.getInstance("SHA1withRSA");
+ourSign.initSign(privateKey);
+ourSign.update(formValue.getBytes());
+return new BASE64Encoder().encode(ourSign.sign());
+```
+
+**PHP signing**
+
+```php
+$data = "merchantId=87&apiId=1&orderId=&payCurrency=BTC&payAmount=0.0&receiveCurrency=USD&receiveAmount=15.99&description=Payment+for+Order-2547&payerEmail=&payerName=&payerSurname=&culture=&callbackUrl=https%3A%2F%2Fmerchant.com%2Fcallback%3Fuser%3D123&successUrl=https%3A%2F%2Fmerchant.com%2Fsuccess%3Fuser%3D123&failureUrl=https%3A%2F%2Fmerchant.com%2Ffailure%3Fuser%3D123";
+// fetch private key from file and ready it
+$private_pem_key = openssl_pkey_get_private($path_to_private_key);
+// compute signature
+openssl_sign($data, $signature, $private_pem_key, OPENSSL_ALGO_SHA1);
+$encodedSignature = base64_encode($signature);
+```
+
+**Validating callbacks**
+
+Callbacks coming from SpectroCoin to merchant pages are also signed. Merchant must validate signature of the request.
+Callback's signature to be validated must be **Base64 decoded**.
+Callback must be converted to **UTF-8 URL encoded concatenated parameters** of one string line including parameter names and ordered in specific sequence specified in documentation.
+Some API request may result in a callback from SpectroCoin, such callbackes are signed by SpectroCoin and must be validated by merchant using [SpectroCoin Merchant Public Key](https://spectrocoin.com/files/merchant.public.pem).
+
+**Java validation**
+
+```java
+String parameters = "merchantId=25&apiId=25&orderId=L254S&payCurrency=BTC&payAmount=25.0&receiveCurrency=EUR&receiveAmount=245.0&description=Some+sting+with+symbols+%25%3D%26&orderRequestId=11&status=1";
+String responseSign = "qGy2ablxcWtoGVAS2YufkYVWT0jLSilaUtMkz6Z8P6Mn6qInewEfK5Bsn4BFRxg1suENJJF8LJGyJV6vZt3XLmAHoTJwRjWLij2FROdFthuVt/U4Ima6uFm6hkjseeNLvJtdLFYWSAyKkt7wpeLPA2QUspQbG0asOhwd8EeP+mZDSfvOwTv2OFvGWcVEPR6DOWKEaw5wW6ilM8yZKowQzhrqoCUyJN4pxK02PLTKGIb6YDu1nESrN6ebp7ugskYwcmynLWNOY8Tu1bdg0fWBF2uCgJkWpc9yy2UYbtpVO7sCjIe+dmojJzqCwS5/7Ny04Mf+ouj6oEchxHfUq7VpaA==";
+Signature verifier = Signature.getInstance("SHA1withRSA");
+verifier.initVerify(publicKey);
+verifier.update(parameters.getBytes());
+byte[] bytes = new BASE64Decoder().decodeBuffer(responseSign);
+return verifier.verify(bytes);
+```
+
+**PHP validation**
+
+```php
+$data = "merchantId=25&apiId=25&orderId=L254S&payCurrency=BTC&payAmount=25.0&receiveCurrency=EUR&receiveAmount=245.0&description=Some+sting+with+symbols+%25%3D%26&orderRequestId=11&status=1";
+$encodedSignature = "QKpoaBL/P2tcFttFm/TVcn0utkgaOzEAOsZbSSOa+zntcxyJUijaM5egewRoRu68d4CoswTpkdOqaKdGrLWPNqQGujPHIX3q8Q0lK/C8GqN7MYHFrLxu+rpY0G4srIaDzXww4uOTkBIBFWn3TVI4AZAGm0/APlZZeCrhwIIkImYc8ab69zeqikyaMXRK0XMAD/8Fz9b+rUR342hMjFR+epZnNmWQpFtQLvB/SxlCZIZ+u1k2WLJYa7CChDePmdXNHgutvt1mQxLMpJmeDNjD2aOzF9+DPIqsOEkJ9RLJ8F0kQXnn9W02Av/a3GMVC7A/u/kxnKo3LRfkkkAAYkCKug=="
+$public_key_pem = openssl_pkey_get_public($path_to_public_spectro_coin_key);
+$responseDecodedSign = base64_decode($encodedSignature);
+$validity = openssl_verify($data, $responseDecodedSign, $public_key_pem, OPENSSL_ALGO_SHA1);
+```
+
+<br><br/>
+
+### Error
+
+**Error result**
+
+When calling any of API operation, it may result an error.
+Errors will be returned **JSON** formatted with **203** http status code.
+
+Error code | Error message
+-----------|--------------
+1 | Validation errors
+2 | Bad signature
+3 | Not supported currency
+4 | Can't create order, please check your merchant account
+5 | Merchant order id exist
+6 | Check your merchantId and apiId
+97 | Unsupported Media Type
+99 | Please check your request
+100 | Unexpected error
+
+```
+        [
+          {
+            "code": 1,
+            "message": "apiId is required"
+          },
+          {
+            "code": 1,
+            "message": "merchantId is required"
+          }
+        ]
+```
+
+<br><br/>
+
+### Merchant API Client Libraries
+
+**Example applications for Merchant API**
+
+There are several sample SpectroCoin merchant API client applications. You should customize them for your needs.
+
+***Java***
+
+Sample SpectroCoin Merchant Java application could be found [here](https://github.com/SpectroCoin/Bitcoin-Merchant-Java).
+
+***PHP***
+
+Sample SpectroCoin Merchant PHP application could be found [here](https://github.com/SpectroCoin/Bitcoin-Merchant-PHP).
+
+<br><br/>
+
+### Accept Bitcoin Payments
+
+If you want to accept Bitcoin payments in your e-shop you have to use [Merchant API service](#introduction/merchant-api).
+
+For easy use we can offer [CMS](#introduction/merchant-api/cms-plugins) plugins, PHP and Java clients.
+
+<br><br/>
+
+### CMS Plugins
+
+SpectroCoin offers simple plugins and extensions for popular shopping carts and billing systems(click on a logo to download). You must have a merchant account with SpectroCoin to process orders with these tools.
+
+<a href="https://spectrocoin.com/en/plugins/accept-bitcoin-drupal.html"><img src="https://spectrocoin.com/vassets/images/plugins/drupalcommerce.png" alt="Drupal"></a>
+
+***[Video tutorial for Drupal ->](https://www.youtube.com/watch?annotation_id=annotation_1075426923&feature=iv&src_vid=Itb3-x4JurU&v=7482hLbM4wQ)***
+
+<a href="https://spectrocoin.com/en/plugins/accept-bitcoin-magento.html"><img src="https://spectrocoin.com/vassets/images/plugins/magento.png" alt="Magento"></a> 
+
+***[Video tutorial for Magento ->](https://www.youtube.com/watch?v=gfb9U4ySfRk)***
+
+<a href="https://spectrocoin.com/en/plugins/accept-bitcoin-opencart.html"><img src="https://spectrocoin.com/vassets/images/plugins/opencart.png" alt="OpenCart"></a> 
+
+***[Video tutorial for Opencart ->](https://www.youtube.com/watch?annotation_id=annotation_1209030739&feature=iv&src_vid=pMKTjTI_UGk&v=ygL4mWip-Fk)***
+
+<a href="https://spectrocoin.com/en/plugins/accept-bitcoin-prestashop.html"><img src="https://spectrocoin.com/vassets/images/plugins/prestashop.png" alt="PrestaShop"></a> 
+
+***[Video tutorial for PrestaShop ->](https://www.youtube.com/watch?annotation_id=annotation_875078805&feature=iv&src_vid=dURplFz_fqY&v=phLZvaPCMAg)***
+
+<a href="https://spectrocoin.com/en/plugins/accept-bitcoin-whmcs.html"><img src="https://spectrocoin.com/vassets/images/plugins/whmcs.png" alt="WHMSC"></a> 
+
+***[Video tutorial for WHMSC ->](https://www.youtube.com/watch?annotation_id=annotation_733563939&feature=iv&src_vid=AwvrjjCfJgc&v=A9RE9_J5-tQ)***
+
+<a href="https://spectrocoin.com/en/plugins/accept-bitcoin-wordpress-woocommerce.html"><img src="https://spectrocoin.com/vassets/images/plugins/woocommerce.png" alt="Woocommerce"></a> 
+
+***[Video tutorial for WooCommerce ->](https://www.youtube.com/watch?v=OTbLlI7sF8U&t=4s)***
+
+<br></br>
+<br></br>
+<br></br>
+<br></br>
+
+## Price Ticker
+
+The Price Ticker API service allows to get a real-time information of bitcoin exchange rate as well as exchange rates of all currency pairs supported by SpectroCoin. The price is the average of sell and buy prices offered by SpectroCoin. The Price Ticker can be used to track Bitcoin price or output information about Bitcoin price in your applications.
+
+***[MORE](#reference/price-ticker)***
+
+## Referrals
+
+SpectroCoin allows to provide callback URL and return callbacks to get information about new users, who registered via your referral link.
+
+### Callbacks
+
+If requested, when new user registers via user's referral link, SpectroCoin will return callbacks to user's defined url about newly registered referrals.
+Your callback URL must return HTTP Response **200** with content: **\*ok*** for SpectroCoin to confirm callback as successful. If failed, SpectroCoin will retry callback in 3 minutes.
+
+***[MORE](#reference/referrals/callback)***
+
+### Callback Signature
+
+* Signature is generated from concatenated parameters, separated with "|" sign and hashed with RIPEMD320 algorithm.<br>
+* Signature format: *{email}*|*{referralCode}*|*{refTrackId}*|*{secretKey}*
+* **All** request fields should be included for signature generation even if they don't have value set.
+
+
+**Example concatenated string:**
+```
+*****il@email.com|533867106|customTrackId|secret
+```
+
+**Example signature:**
+```
+f1327b0658958d37dfde5555fe895685242d6348897e0acfcff162af504995544d275d3ac882270a
+```
+
+**Example concatenated string without refTrackId:**
+```
+*****il@email.com|533867106||secret
+```
+
+**Example signature:**
+```
+4e660ebf79c94acd3c7326d9d6d25a8249a63a9719962d10a41c6178535a8999776df7c02952f46f
+```
+
+**Signature Verification**<br>
+Callbacks coming from SpectroCoin to user's callback URL are signed. User must validate signature of the request.
+To validate callback signature, you must concatenate request parameters, your secret key and separate them with "|" sign.
+Concatenated string should be hashed with **RIPEMD320** algorithm and compared with our signature from request.<br>
+
+**Java example**
+```java
+String concatenatedParamsString = "*****il@email.com|533867106|customTrackId|secret";
+String responseSignature = "f1327b0658958d37dfde5555fe895685242d6348897e0acfcff162af504995544d275d3ac882270a";
+MessageDigest ripemd320;
+ripemd320 = MessageDigest.getInstance("RIPEMD320");
+byte[] digest = ripemd320.digest(concatenatedString.getBytes("UTF-8"));
+String hash = bytes2String(digest);
+return hash.equalsIgnoreCase(responseSignature);
+```
+
+
+
+# Group Bitcoin Wallet
+
+## Obtaining an Access Token [/api/r/oauth2/auth]
+
+Method to authenticate user and get access tokens to use wallet REST API. Refresh token is used to issue new access tokens when the original access token expires.
+
+### Example: Obtaining an Access Token [POST]
+
+**Request**
+
+Field  | Type | Required  | Example
+------|-------|-----------|--------
+client_id | String |+ | wallet_8f452af79dcb7fed5979d11cc33910bb
+client_secret | String | + | test-secret
+version | String | + | 1.0
+scope | String | + | send_currency currency_exchange user_account
+
+**Response**
+
+Possible validation error codes: [**1, 1003, 2001**](#introduction/bitcoin-wallet-api/errors)
+
+Field | Type   | Always return | Example
+--------|-------|----------|--------
+access_token | String | + | f6f2e066917...3cd28756350041fd00c8ff741e0c1bf
+expires_in | String | + | 300 (seconds)
+refresh_token | String | + | f4a74245757...be20d23fc81cff0750613cd319abaf1
+scope | String | + | send_currency currency_exchange user_account
+token_type | String | - | bearer
+
++ Request
+
+    + Headers
+        
+            Connection: Keep-Alive
+            Content-Type: application/json
+    + Body
+    
+            {
+              "client_id": "wallet_8f452af79dcb7fed5979d11cc33910bb",
+              "client_secret": "test-secret",
+              "version": "1.0",
+              "scope": "user_account send_currency currency_exchange"
+            }
+                    
++ Response 200 (application/json)
+        
+    + Body
+
+            {
+                "access_token": "42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625",
+                "token_type": "bearer",
+                "expires_in": 300,
+                "refresh_token": "3cbba02103fb47991921923fe350da11299038ccf4ebbc866fc4b2615b46c013a3211509b0fe6084",
+                "scope": "send_currency currency_exchange user_account"
+            }
+
+## Renewing an Access Token [/api/r/oauth2/refresh]
+
+Method to exchange a refresh token to a new pair of OAuth2 tokens.
+
+### Example: Renewing an Access Token [POST]
+
+**Request**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+client_id | String | + | wallet_8f452af79dcb7fed5979d11cc33910bb
+client_secret | String | + | test-secret
+refresh_token | String | + | cfee255c08b61b08...1588a4de1fc75a89b529619
+version | String | + | 1.0
+
+**Response**
+
+Possible validation error codes: [**1, 1003, 2001, 2003**](#introduction/bitcoin-wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+access_token | String | + | f6f2e066917...3cd28756350041fd00c8ff741e0c1bf
+expires_in | String | + | 300 (seconds)
+refresh_token | String  | + | f4a74245757...be20d23fc81cff0750613cd319abaf1
+scope | String  | + | send_currency currency_exchange user_account
+token_type | String | - | bearer
+
++ Request
+
+    + Header 
+
+            Connection: Keep-Alive 
+            Content-Type: application/json
+    + Body
+    
+            {
+              "client_id": "wallet_8f452af79dcb7fed5979d11cc33910bb",
+              "client_secret": "test-secret",
+              "version": "1.0",
+              "refresh_token": "cfee255c08b61b08…1588a4de1fc75a89b529619"
+            }
+
++ Response 200 (application/json) 
+
+    + Body
+    
+                { 
+                    "access_token": "f6f2e0669172035b98a241d6e2afdf531184a400ec8321e1f3cd28756350041fd00c8ff741e0c1bf", 
+                    "token_type": "bearer", 
+                    "expires_in": 300, 
+                    "refresh_token": "f4a742457578f5d0b029bf39776c8a6b45b43f7bf5e97514cbe20d23fc81cff0750613cd319abaf1", 
+                    "scope": "send_currency currency_exchange user_account" 
+                }
+            
++ Response 203 (application/json) 
+
+    + Body
+ 
+            [
+                {
+                   "code": 2003,
+                   "message": "Refresh token expired, please authenticate."
+                }
+            ]
+
+## Send Money [/api/r/wallet/send/{currency}]
+
+Method to send bitcoins or any other currency to a Bitcoin address, a DASH address or an email address.
+
+Transactions fees may apply depending on the currency and type of destination. If transaction fees are applied receiver will receive full amount if sender has enough balance to cover possible additional fee. Otherwise fees will be deducted from the amount.
+
+Transactions between SpectroCoin wallets are free.
+
+### Example: Send Money [POST]
+
+**Security** 
+
+Schema | Scope
+------|-------
+OAuth2 | send_currency
+
+**Path parameters**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+currency | String | + | EUR, BTC, DASH
+
+**Request**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+amount | Double | + | 13.19, 0.00145021
+receiver | String | + | test_cs7@spectrocoin.com, 12KKCFWLPayT8VAbhHRhs7VCS1LPUGGfqv
+message | String | - | Foo, bar, KXTj2hPJ
+refId | String | - | 123, test12, TesTXD1C
+
+`Message` could be added only if sending to XEM address. For other currencies it does not have any influence.
+`refId` is unique for each sent per user to avoid double send your funds. 
+
+**Response**
+
+Possible validation error codes: [**1, 1001, 1003, 1004, 1005, 1008, 3001, 3002, 3003, 3005, 3006, 3016, 3017, 3027, 3032, 5003, 5021, 13023**](#introduction/bitcoin-wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+paymentId | Long | + | 153
+withdrawAmount | Double | + | 13.19, 0.00145021
+receiveAmount | Double  | + | 13.19, 0.00145021
+currency | String | + | EUR, BTC, USD...
+status | String | + | Statuses: `NEW`, `PENDING` `FAILED` or `PAID`
+receiver | String | + | test@spectrocoin.com
+message | String | - | cGkSx732
+sendCurrencyData | SendCurrencyData | + | "sendCurrencyData"{ "paymentId": 1021,"withdrawAmount": 0.2,"receiveAmount": 0.2,"currency": "BTC","status": "PAID","receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG", "message": cGkSx732}
+
+`Message` could be returned only if send was made to XEM address and message was specified.
+
+This variable `paymentId` is obsolete.
+
+This variable `withdrawAmount` is obsolete.
+
+This variable `receiveAmount` is obsolete.
+
+This variable `currency` is obsolete.
+
+This variable `status` is obsolete.
+
+This variable `receiver` is obsolete.
+
+This variable `message` is obsolete.
+
+**SendCurrencyData**
+Field | Type | Always return | Example
+------|-------|---------------|--------
+paymentId | Long | + | 153
+withdrawAmount | Double | + | 13.19, 0.00145021
+receiveAmount | Double  | + | 13.19, 0.00145021
+currency | String | + | EUR, BTC, USD...
+status | String | + | Statuses: `NEW`, `PENDING` `FAILED` or `PAID`
+receiver | String | + | 19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG
+refId | String | - | TesTrefId1
+message | String | - | cGkSx732
+error | ErrorInfo | - | "error": {"code":3005, "message":"Sender and receiver should be different"}
+
+`Message` could be returned only if send was made to XEM address and message was specified.
+
+> * `NEW` – initial status, transaction should be processed in the near future.
+> * `PENDING` – transaction is being processed.
+> * `PAID` – transaction has been processed i.e. receiver has received funds.
+> * `FAILED` - transaction failed.
+
+**ErrorInfo**
+Field | Type | Always return | Example
+------|-------|---------------|--------
+code | short | + | 3005
+message | String | + | Sender and receiver should be different
+
++ Parameters
+
+    + currency: USD - type currency name (USD, EUR, BTC, DASH, ETH, XEM, GBP, CNY, CAD ...)
+    
++ Request
+
+    + Headers 
+
+            Authorization: Bearer 62652f3718585359d7739750e0ea05577c1f10b71252a79f8e7f2be88e58ae8476331bf6a2c7e409
+            Connection: Keep-Alive
+            Content-Type: application/json
+
+    + Body
+    
+            [
+              {
+                "amount": 0.2,
+                "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG"
+              }
+            ]
+            
++ Request Example for multiple BTC receivers:
+
+    + Header 
+
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 47
+            Host: spectrocoin.com
+
+    + Body
+    
+            [
+              {
+                "amount": 0.2,
+                "receiver": "12KKCFWLPayT8VAbhHRhs7VCS1LPUGGfqv"
+              },
+              {
+                "amount": 0.3,
+                "receiver": "12KKCFWLPayT8VAbhHRhs7VCS1LPUGGfqv"
+              }
+            ]
+     
++ Response 200 (application/json) 
+
+    + Body
+    
+                {
+                   "paymentId": "153",
+                   "withdrawAmount": 13.19,
+                   "receiveAmount": 13.19,
+                   "currency": "EUR",
+                   "status": "PAID",
+                   "receiver": "test@spectrocoin.com",
+                   "sendCurrencyData": 
+                    {
+                        "paymentId": "153",
+                        "withdrawAmount": 13.19,
+                        "receiveAmount": 13.19,
+                        "currency": "EUR",
+                        "status": "PAID",
+                        "receiver": "test@spectrocoin.com"
+                    }
+                }
+            
++ Response 203 (application/json) 
+
+    + Body
+    
+ 
+            [
+                  {
+                  "code": 1,
+                  "message": "amount is required"
+               },
+                  {
+                  "code": 1,
+                  "message": "receiver is required"
+               }
+            ]
+            
+### Example: Send Money with refId [POST]
+
++ Parameters
+
+    + currency: USD - type currency name (USD, EUR, BTC, DASH, ETH, XEM, GBP, CNY, CAD ...)
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 188
+            Content-Type: application/json
+
+    + Body
+    
+            [
+                {
+                    "amount": 0.2,
+                    "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG",
+                    "refId": "TesTrefId1"
+                }
+            ]
+            
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                "sendCurrencyData": [
+                  {
+                  "paymentId": 1022,
+                  "withdrawAmount": 0.2,
+                  "receiveAmount": 0.2,
+                  "currency": "BTC",
+                  "status": "PAID",
+                  "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG",
+                  "refId": "TesTrefId1"
+               }
+                ]}
+
+            
+## Bulk Send [/api/r/wallet/send/{currency}/]
+
+Method to process more than one send transaction i.e. to send mass payments. Allows to easily process bulk payments from your applications such as faucets, affiliate programs or other platforms.
+
+Payments are aggregated, hence transactions are cheaper than done individually. 
+
+### Example(to cryptocurrency address): Bulk Send [POST]
+
++ Parameters
+
+    + currency: BTC - type currency name (DASH, etc..)
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 188
+            Content-Type: application/json
+
+    + Body
+    
+            [
+                {
+                    "amount": 0.2,
+                    "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG"
+                },
+                {
+                    "amount": 0.3,
+                    "receiver": "mpCbmZf53zQYkpsEadhqz42YnZ1VpuGBW4"
+                }
+            ]
+            
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                "sendCurrencyData": [
+                  {
+                  "paymentId": 1021,
+                  "withdrawAmount": 0.2,
+                  "receiveAmount": 0.2,
+                  "currency": "BTC",
+                  "status": "PAID",
+                  "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG"
+               },
+                  {
+                  "paymentId": 1022,
+                  "withdrawAmount": 0.3,
+                  "receiveAmount": 0.3,
+                  "currency": "BTC",
+                  "status": "PAID",
+                  "receiver": "mpCbmZf53zQYkpsEadhqz42YnZ1VpuGBW4"
+               }
+                ]}
+
+
+### Example(to email address): Bulk Send [POST]
+
++ Parameters
+
+    + currency: EUR - type currency name (USD, GBP etc..)
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 188
+            Content-Type: application/json
+
+    + Body
+    
+            [
+                {
+                    "amount": 20,
+                    "receiver": "example@spectrocoin.com"
+                },
+                {
+                    "amount": 24.99,
+                    "receiver": "spectrocoin@example.com"
+                }
+            ]
+            
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                "sendCurrencyData": [
+                  {
+                  "paymentId": 1023,
+                  "withdrawAmount": 20,
+                  "receiveAmount": 20,
+                  "currency": "EUR",
+                  "status": "PAID",
+                  "receiver": "example@spectrocoin.com"
+               },
+                  {
+                  "paymentId": 1024,
+                  "withdrawAmount": 24.99,
+                  "receiveAmount": 24.99,
+                  "currency": "EUR",
+                  "status": "PAID",
+                  "receiver": "spectrocoin@example.com"
+               }
+                ]}
+
+### Example(a mix between email and crypto address): Bulk Send [POST]
+
++ Parameters
+
+    + currency: BTC
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 188
+            Content-Type: application/json
+
+    + Body
+    
+            [
+                {
+                    "amount": 0.5,
+                    "receiver": "example@spectrocoin.com"
+                },
+                {
+                    "amount": 0.06,
+                    "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG"
+                    "
+                }
+            ]
+            
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                "sendCurrencyData": [
+                  {
+                  "paymentId": 1024,
+                  "withdrawAmount": 0.5,
+                  "receiveAmount": 0.5,
+                  "currency": "BTC",
+                  "status": "PAID",
+                  "receiver": "example@spectrocoin.com"
+               },
+                  {
+                  "paymentId": 1025,
+                  "withdrawAmount": 0.06,
+                  "receiveAmount": 0.06,
+                  "currency": "BTC",
+                  "status": "PAID",
+                  "receiver": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG"
+               }
+                ]}
+                
+### Example(to email address with failed transaction): Bulk Send [POST]
+
++ Parameters
+
+    + currency: EUR - type currency name (USD, GBP etc..)
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 188
+            Content-Type: application/json
+
+    + Body
+    
+            [
+                {
+                    "amount": 20,
+                    "receiver": "example@spectrocoin.com"
+                },
+                {
+                    "amount": 4.99,
+                    "receiver": "test@spectrocoin.com"
+                }
+            ]
+            
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                "sendCurrencyData": [
+                  {
+                  "paymentId": 1023,
+                  "withdrawAmount": 20,
+                  "receiveAmount": 20,
+                  "currency": "BTC",
+                  "status": "PAID",
+                  "receiver": "example@spectrocoin.com"
+               },
+                  {
+                  "withdrawAmount": 4.99,
+                  "receiveAmount": 4.99,
+                  "currency": "BTC",
+                  "status": "FAILED",
+                  "receiver": "test@spectrocoin.com",
+                  "error":
+                    {
+                    "code": 3005,
+                    "message": "Sender and receiver should be different"
+                    }
+               }
+                ]}
+
+## Get Crypto Address [/api/r/wallet/deposit/{currency}/last]
+
+Method to get a current BTC, DASH, ETH, XEM.
+
+### Example: Get Crypto Address [GET]
+
+**Security**
+
+Schema | Scope|
+------|-------|
+OAuth2 | user_account|
+
+
+**Path parameters**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+currency | String | + | BTC, DASH, ETH, XEM
+
+**Response**
+
+Returns crypto address.
+
+Possible validation error codes: [**1, 1003, 1004, 1012**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+btcAddress | String | - | 1Bm3ENaZrtrExi56ywM6DWKQgJDmsrMQ41
+cryptoAddress | String | + | 1M4bqMd471TTwNtUSeHPhSW5qQy1Y48p5b
+currency | String | + | BTC
+message | String | - | KXTj2hPJ
+
+`message` is returned only when getting XEM address.
+
+This variable `btcAddress` is obsolete.
+
++ Parameters
+
+    + currency: BTC - type currency name (BTC, DASH, ETH, XEM)
+    
++ Request
+
+    + Headers
+                
+                    Authorization: Bearer f6f2e0669172035b98a241d6e2afdf531184a400ec8321e1f3cd28756350041fd00c8ff741e0c1bf
+                    Connection: Keep-Alive
+
++ Response 200 (application/json) 
+
+    + Body
+    
+                {
+                    "btcAddress": "1M4bqMd471TTwNtUSeHPhSW5qQy1Y48p5b"
+                    "cryptoAddress": "1M4bqMd471TTwNtUSeHPhSW5qQy1Y48p5b",
+                    "currency": "BTC"
+                }
+                
++ Response 200
+
+    + Body
+    
+                {
+                    "cryptoAddress": "Xxbit2NkZ4YfAyrgWCSQtRzDjvPJyPFZ4n",
+                    "currency": "DASH"
+                }
+
+
+## Generate New Address [/api/r/wallet/deposit/{currency}/fresh]
+
+Method used to generate new BTC, DASH, XEM, ETH address.
+
+### Example: Get New Address [GET]
+
+**Security**
+
+Schema | Scope|
+------|-------|
+OAuth2 | user_account|
+
+**Path parameters**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+currency | String | + | BTC, DASH, XEM
+
+**Response**
+
+Return new crypto address.
+
+Possible validation error codes: [**1, 1003, 1004, 1012**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+btcAddress | String | - | 1Bm3ENaZrtrExi56ywM6DWKQgJDmsrMQ41
+cryptoAddress | String | + | 1Bm3ENaZrtrExi56ywM6DWKQgJDmsrMQ41
+currency | String | + | BTC, DASH, ETH, XEM
+message | String | - | KXTj2hPJ
+
+`message` is returned only when getting XEM address.
+
+This variable `btcAddress` is obsolete.
+
++ Parameters
+
+    + currency: BTC - type currency name (BTC, DASH, XEM)
+    
++ Request
+
+    + Headers
+                
+                    Authorization: Bearer f6f2e0669172035b98a241d6e2afdf531184a400ec8321e1f3cd28756350041fd00c8ff741e0c1bf
+                    Connection: Keep-Alive
+
++ Response 200 (application/json) 
+
+    + Body
+    
+                {
+                    "btcAddress": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG",
+                    "cryptoAddress": "19ewwHxeppY74bnT1wrT6kM1ymCWdJLkVG",
+                    "currency": "BTC"
+                }
+                
++ Response 200
+
+    + Body
+    
+                {
+                    "cryptoAddress": "Xxbit2NkZ4YfAyrgWCSQtRzDjvPJyPFZ4n",
+                    "currency": "DASH"
+                }
+
++ Response 200
+
+    + Body
+    
+                {
+                    "cryptoAddress": "TAVISI7ETMVMS2C7CN6V2X6AUUGZQYVJ7GLZYP5O",
+                    "currency": "XEM",
+                    "message": "cGkSx732"
+                }
+
+## Calculate Buy Order [/api/r/wallet/exchange/calculate/buy{?receiveAmount,receiveCurrency,payCurrency}]
+
+Method to calculate a required amount to buy a given amount of a desired currency.
+
+### Example: Calculate Buy Order [GET]
+
+**Security**
+
+Schema | Scope
+------|-------
+OAuth2 | currency_exchange
+
+**Request**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+receiveAmount | Double | + | 0.00212015, 3.01
+receiveCurrency | String | + | BTC 
+payCurrency | String | + | EUR
+
+**Response**
+
+Possible validation error codes: [**1, 1003, 1004, 1005, 7008**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+payAmount | Double | + | 2.35
+payCurrency | String | + | EUR, USD, GBP...
+
++ Parameters
+
+    + receiveAmount: 10 - receive amount (15, 100, 10.25 ...)
+    + receiveCurrency: USD - receive currency (USD, EUR, BTC ...)
+    + payCurrency: EUR - pay currency (DASH, GBP, USD ...)
+
++ Request
+
+    + Headers
+                
+                    Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+                    Connection: Keep-Alive
+
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                   "payAmount": 2.35,
+                   "payCurrency": "EUR"
+                }
+
+## Exchange Buy Order [/api/r/wallet/exchange/buy]
+
+Method to execute a buy order.
+
+### Example: Exchange Buy Order [POST]
+
+**Security**
+
+
+Schema | Scope
+------|-------
+OAuth2 | currency_exchange
+
+**Request**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+receiveAmount | Double | + | 3.01, 0.04610103
+receiveCurrency | String  | + | USD, EUR, GBP...
+payCurrency | String | + | EUR, GBP, USD...
+
+**Response**
+
+Possible validation error codes: [**1, 1001, 1002, 1003, 1004, 1005, 7006, 7007, 7008, 7009, 7010**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+exchangeId | Long | + | 50
+payAmount | Double | + | 2.35, 0.046101
+payCurrency | String | + | EUR, DASH...
+receiveAmount | Double | + | 19.23, 0.0001257
+receiveCurrency | String | + | USD, BTC...
+status | String | - | Statuses: NEW, PENDING or PAID
+
+* `NEW` – order received
+* `PENDING` – order is waiting for an approval
+* `PAID` – order completed
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Length: 105
+            Content-Type: application/json
+            
+    + Body
+    
+                {
+                    "receiveAmount": 3.01,
+                    "receiveCurrency": "USD",
+                    "payCurrency": "EUR"
+                }
+                
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                   "exchangeId": 50,
+                   "status": "PAID",
+                   "payAmount": 2.35,
+                   "payCurrency": "EUR",
+                   "receiveCurrency": "USD",
+                   "receiveAmount": 3.01
+                }
+
+## Calculate Sell Order [/api/r/wallet/exchange/calculate/sell{?payAmount,payCurrency,receiveCurrency}]
+
+Method to calculate amount of proceedings of sell order providing an amount to be sold.
+
+### Example: Calculate Sell Order [GET]
+
+**Security**
+
+
+Schema | Scope
+------|-------
+OAuth2 | currency_exchange
+
+**Request**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+payAmount | Double | + | 10.15, 14.80219015
+receiveCurrency | String | + | BTC
+payCurrency | String | + | EUR
+
+**Response**
+
+Possible validation error codes: [**1, 1003, 1004, 1005, 7008**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+receiveAmount | Double | + | 19.23, 0.0001257
+receiveCurrency | String | + | EUR, DASH, USD...
+
++ Parameters
+
+    + payAmount: 10 - pay amount (15, 100, 10.25 ...)
+    + payCurrency: USD - pay currency (USD, EUR, BTC ...)
+    + receiveCurrency: EUR - receive currency (DASH, GBP, USD ...)
+    
++ Request
+
+    + Headers
+    
+                Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+                
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                   "receiveAmount": 0.04610103,
+                   "receiveCurrency": "BTC"
+                }
+                
+## Exchange Sell Order [/api/r/wallet/exchange/sell]
+
+Method to execute a sell order.
+
+### Example: Exchange Sell Order [POST]
+
+**Security**
+
+Schema | Scope
+------|-------
+OAuth2 | currency_exchange
+
+**Request**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+payAmount | Double | + | 1.15, 2.35040101
+receiveCurrency | String | + | EUR
+payCurrency | String | + | BTC
+
+**Response**
+
+Possible validation error codes: [**1, 1001, 1002, 1003, 1004, 1005, 7006, 7007, 7008, 7009, 7010**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+exchangeId | Long | + | 51
+payAmount | Double | + | 1.15
+payCurrency | String | + | EUR
+receiveAmount | Double | + | 0.00522326
+receiveCurrency | String | + | BTC
+status | String | + | Statuses: `NEW`, `PENDING` or `PAID`
+
+> * `NEW` – order received
+> * `PENDING` – order is waiting for an approval
+> * `PAID` – order completed
+
++ Request
+
+    + Header
+        
+            Authorization: Bearer 42e0f8d6cc2f30de2b1dad7cc2df5455b6d05308e6e06495c766dcb43853ba6d17b77b7623899625
+            Connection: Keep-Alive
+            Content-Type: application/json
+
+    + Body
+    
+            {
+                "payAmount": 1.15,
+                "receiveCurrency": "BTC",
+                "payCurrency": "EUR"
+            }
+                
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                   "exchangeId": 51,
+                   "status": "PAID",
+                   "payAmount": 1.15,
+                   "payCurrency": "EUR",
+                   "receiveCurrency": "BTC",
+                   "receiveAmount": 0.00522326
+                }
+                
+## Crypto Payment Info [/api/r/wallet/send/status/{paymentId}]
+
+Method to check crypto payment status
+
+### Example: Crypto Payment Info [GET]
+
+
+**Security**
+
+Schema | Scope
+------|-------
+OAuth2 | user_account
+
+**Response**
+
+Possible validation error codes: [**3030, 3031**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+paymentId | Long | + | 51
+status | String | + |  `NEW`, `PENDING` or `PAID`
+transactionHash | String | - | d01f0a7203f9dac2dea2f05e5efa20fc31e1f0ef8a285ef530b75a316acb6
+withdrawAmount | Double | + | 0.00522326
+receiver | String | + | TAVISI7ETMVMS2C7CN6V2X6AUUGZQYVJ7GLZYP5O
+message | String | - | cGkSx732
+receiveAmount | Double | + | 0.00522326
+currency | String | + | XEM, ETH, BTC
+
++ Request
+
+    + Headers
+    
+                Authorization: Bearer 185d8d25a49793a6f49ca93de60dc88f4d73fc58bad0017a44eccbf43c1eb680b10f9e9c2a1418ea
+                Connection: Keep-Alive
+                
++ Response 200 (application/json)
+
+    + Body
+    
+        {
+          "paymentId": 188,
+          "status": "PAID",
+          "transactionHash": "d01f0a7203f9dac2dea2f05e5efa20fc31e1f0ef8a285ef530b75a316acb6",
+          "withdrawAmount": 0.02,
+          "receiver": "TAVISI7ETMVMS2C7CN6V2X6AUUGZQYVJ7GLZYP5O",
+          "message": "cGkSx732",
+          "receiveAmount": 0.02,
+          "currency": "XEM"
+        }
+                
+## User Accounts Info [/api/r/wallet/accounts]
+
+Method to get information about user's accounts.
+
+### Example: Account Info [GET]
+
+Method to get information about user's accounts.
+
+**Security**
+
+Schema | Scope
+------|-------
+OAuth2 | user_account
+
+**Response**
+
+Response is an array of accounts. Account's structure is defined bellow.
+
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+accountId | Long | + | 2626
+balance | Double | + | 351.76
+availableBalance | Double | + | 351.76
+reservedAmount | Double | - | 0
+currencyName | String  | + | Euro
+currencyCode | String  | + | EUR
+currencySymbol | String | - | €
+
+Possible validation error codes: [**1, 1003, 1004, 1012**](#introduction/wallet-api/errors)
+
++ Request
+
+    + Headers
+    
+                Authorization: Bearer 185d8d25a49793a6f49ca93de60dc88f4d73fc58bad0017a44eccbf43c1eb680b10f9e9c2a1418ea
+                Connection: Keep-Alive
+                
++ Response 200 (application/json)
+
+    + Body
+    
+                {
+                            "accounts": [
+                  {
+                  "accountId": 295229,
+                  "balance": 0,
+                  "availableBalance": 0,
+                  "reservedAmount": 0,
+                  "currencyName": "Bitcoin",
+                  "currencyCode": "BTC",
+                  "currencySymbol": "BTC"
+               },
+                  {
+                  "accountId": 295231,
+                  "balance": 0,
+                  "availableBalance": 0,
+                  "reservedAmount": 0,
+                  "currencyName": "USD",
+                  "currencyCode": "USD",
+                  "currencySymbol": "$"
+               },
+                  {
+                  "accountId": 295232,
+                  "balance": 0,
+                  "availableBalance": 0,
+                  "reservedAmount": 0,
+                  "currencyName": "Gold",
+                  "currencyCode": "XAU",
+                  "currencySymbol": "Oz"
+               },
+                  {
+                  "accountId": 574260,
+                  "balance": 0,
+                  "availableBalance": 0,
+                  "reservedAmount": 0,
+                  "currencyName": "DASH",
+                  "currencyCode": "DASH",
+                  "currencySymbol": "DASH"
+               }
+                ]
+            }
+            
+## History [/api/r/wallet/account/{id}{?page,size}]
+
+Method to get a paged transaction history of user's account.
+
+### Example: History [GET]
+
+**Security**
+
+Schema | Scope|
+------|-------|
+OAuth2 | user_account|
+
+
+**Path parameters**
+
+If you need to find an accountId press [this](#reference/account/user-accounts-info).
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+accountId | Long | + | 2626
+
+**Request**
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+page | Integer | + | 1
+size | Integer | + | 4
+
+**Response**
+
+Response is an array of transactions' info and total transactions count. Historical data is returned in a descending order. If user do not define page and size in request by default, first 25 records are returned. History's structure is defined bellow.
+
+Possible validation error codes: [**1, 1003, 1004, 6001**](#introduction/wallet-api/errors)
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+totalCount | Long | + | 425
+history | Array of **History structure** | - | |
+
+## History structure
+
+|Field | Type | Always return | Example|
+|------|-------|---------------|--------|
+|transactionId | String | + | SC000004848|
+|amount | Double | + | -1.15|
+|description | String | + | EUR sell for exchange. 1.15 EUR|
+|date | Date | + | 2016-03-10T14:27:31.000Z|
+|status | String | + | Statuses: `PENDING`, `PROCESSED`  or `FAILED`|
+
+> * `PENDING`  – waiting for action.
+> * `PROCESSED` – transaction completed.
+> * `FAILED` – transaction incomplete for some reason.
+
++ Parameters
+
+    + id: 666666 - type account nummber
+    + page: 1 (numeric) - Page number
+    + size: 4 (numeric) - Number of trx per page
+    
++ Request
+
+    + Headers
+                
+                    Authorization: Bearer f6f2e0669172035b98a241d6e2afdf531184a400ec8321e1f3cd28756350041fd00c8ff741e0c1bf
+                    Connection: Keep-Alive
+
++ Response 200 (application/json) 
+
+    + Body
+    
+                {
+                    "totalCount": 425,
+                    "history":    
+                       [
+                          {
+                             "transactionNo": "SC000004848",
+                             "status": "PROCESSED",
+                             "amount": -1.15,
+                             "description": "EUR sell for exchange. 1.15 EUR",
+                             "date": "2016-03-10T14:27:31.000Z"
+                          },
+                          {
+                             "transactionNo": "SC000004846",
+                             "status": "PROCESSED",
+                             "amount": -2.35,
+                             "description": "EUR sell for exchange. 2.35 EUR",
+                             "date": "2016-03-10T14:18:12.000Z"
+                          },
+                          {
+                             "transactionNo": "SC000004841",
+                             "status": "PROCESSED",
+                             "amount": -13.19,
+                             "description": "EUR sell for exchange. 13.19 EUR",
+                             "date": "2016-03-10T14:12:40.000Z"
+                          },
+                          {
+                             "transactionNo": "SC000004776",
+                             "status": "PROCESSED",
+                             "amount": -1.01,
+                             "description": "EUR sell for exchange. 1.01 EUR",
+                             "date": "2016-03-09T14:39:13.000Z"
+                          }
+                       ]
+                }
+
+# Group Merchant
+
+## Create Order [/api/merchant/1/createOrder]
+
+
+Order is a payment request for a specific client. An order has a fixed amount to be received, usually denominated in a fiat currency. In addition it also has an amount to be paid in bitcoins (or other cryptocurrency).
+The order is sent by merchant to clients to allow them to pay in bitcoins, while merchant can receive his prefered currency (USD, EUR, GBP, CNY or any other)
+
+For this method server accepts only **POST** of **"application/x-www-form-urlencoded"** media type.
+
+**Please be informed** that all required fields Should be filed, used and in the order same like in the Create Order Request table.
+
+**Please be informed** that "Test" orders have deposit address but you are not required to pay for it and BTC are not refundable for "Test" orders if you will do a deposit.
+
+### Example: Create Order [POST]
+
+**Request**
+
+Seq No. | Field | Type | Required | Example
+--------|-------|------|----------|--------
+1. | merchantId | Long | + | 12345
+2. | apiId | Long | + | 1
+3. | orderId | String | - | ABC001, **Must be unique** for all merchant API orders. If not provided, order request id will be assigned
+4. | payCurrency | String | + | BTC
+5. | payAmount | Double | + or receiveAmount | 123.45, 1.23456789. Amount merchant clients will pay for order in provided pay currency
+6. | receiveCurrency | String | + | BTC, EUR, USD, GBP, SEK, NOK, DKK, PLN, CZK, BGN, GEL, RON, HRK, TRY, CHF and other supported
+7. | receiveAmount | Double | + or payAmount | 123.45, 1.23456789. Value of provided receive currency which merchant want to receive to configured receive account at merchant API setup window
+8. | description | String | - | Order ABC001 for User 123
+9. | payerEmail | String | - | john@spectrocoin.com (if API is configured for verified payers only, used to specify who should pay)
+10. | payerName | String | - | John
+11. | payerSurname | String | - | Beard
+12. | culture | String | - | en, lt, ru. Language for response
+13. | callbackUrl | String | - | https:// merchant.com/orderCallback?user=123
+14. | successUrl | String | - | https:// merchant.com/success?user=123
+15. | failureUrl | String | - | https:// merchant.com/failure?user=123
+16. | sign | String | + | Generated order request signature
+
+More about ***sign*** you can read at Introduction -> Merchant API -> Signature scroll a little bit down until you will find information about ***Signing request***.
+
+**Response**
+
+**JSON** formatted response of complex object `Order`.
+
+Field | Type | Example
+------|------|--------
+orderRequestId | Long | Order request id, SpectroCoin Id to track orders
+orderId | String | ABC00
+payCurrency | String | BTC
+payAmount | Double | 123.45, 1.23456789 (BTC)
+receiveCurrency | String | BTC, EUR, ...
+receiveAmount | Double | 123.45, 1.23456789 (BTC)
+depositAddress | String | 1HZcE7ZbwnEKHYcKkva1uZoxZbFvRyK3fm
+redirectUrl | String | https:// spectrocoin.com/en/pay/order/18-5fD2HgMK.html
+validUntil | Long | Timestamp (how many milliseconds have passed since January 1, 1970, 00:00:00 GMT) until order is valid.
+
++ Request
+
+    + Headers
+        
+            Content-Length: 708
+            Content-Type: application/x-www-form-urlencoded
+            Connection: Keep-Alive
+            Accept-Encoding: gzip,deflate
+
+    + Body
+    
+            merchantId=37182&apiId=35603&orderId=&payCurrency=BTC&payAmount=0.0&receiveCurrency=USD&receiveAmount=15.99&description=Payment+for+Order-2547&payerEmail=&payerName=&payerSurname=&culture=&callbackUrl=https%3A%2F%2Fmerchant.com%2Fcallback%3Fuser%3D123&successUrl=https%3A%2F%2Fmerchant.com%2Fsuccess%3Fuser%3D123&failureUrl=https%3A%2F%2Fmerchant.com%2Ffailure%3Fuser%3D123&sign=L+tSJpsv6VIzgfHcP7FiHzjMPaw/BtqnAhDm8l8LyrcrouH2O9RK/6i+EGhYBrq3h/drmKFEcsjTbiaXgp0eoWyQvEIAScvCVYPo5I3JgeipJLgRMhJGLbBEE2QmJFW1FXZRepiBdux95g1Y0MJ883WXQNRQA+33MQVVMfO1hEqajZVTSqefDC7c2ILn3OwK0rWVwBDnZLjdIqO+Ad60KHwVGoaIAou/uOVr44GyBUk2NQqRns96W2IU28z/WQwvtzTDARGFlS8LBTS8Izm2mSvxa0/HC8S3cL7+hXMj3CsTty1tPWOhotgiSJX4l/qo+iPlDAEat1ZDrm8Xerhbcg==
+                    
++ Response 200 (application/json)
+        
+    + Body
+
+            {
+                "depositAddress":"1HZcE7ZbwnEKHYcKkva1uZoxZbFvRyK3fm",
+                "orderId":"18",
+                "orderRequestId":18,
+                "payAmount":0.00246995,
+                "payCurrency":"BTC",
+                "receiveAmount":1.0,
+                "receiveCurrency":"EUR",
+                "redirectUrl":"https://spectrocoin.com/en/pay/order/18-5fD2HgMK.html",
+                "validUntil":1401191587663
+            }
+
+## Callback [/merchant.com/callback]
+
+If requested while initiating an order SpectroCoin will return callbacks to merchant's definied callback url. Callback provides information about the current order status.
+Merchant's callback url must return HTTP Response **200** with content: **\*ok*** for SpectroCoin API to confirm callback as successful.
+
+### Example: Callback [POST]
+
+Complex object `OrderCallback`.
+
+Seq No.     |     Field   | Type        |  Example
+------------| ----------- | ----------- |  ----------- 
+1. | merchantId | Long | 12345
+2. | apiId | Long | 1
+3. | orderId | String | ABC001
+4. | payCurrency | String | BTC
+5. | payAmount | Double | 123.45, 1.23456789 (BTC)
+6. | receiveCurrency | String | BTC, EUR, ...
+7. | receiveAmount | Double | 123.45, 1.23456789 (BTC)
+8. | receivedAmount | Double | 123.45, 1.23456789 (BTC)
+9. | description | String | Order ABC001 for User 123
+10. | orderRequestId | Long | Order request id, SpectroCoin Id to track orders
+11. | status | Short | Order status
+12. | sign | String | Generated order callback signature
+
+More about ***Callback signature*** you can read at Introduction -> Merchant API -> Signature scroll a little bit down until you will find information about ***Validating callbacks***.
+
+Order status table: 
+
+Status Code      | Order status    | Description        
+:----------------| --------------- | ----------- 
+1 | New | Initial state when order is registered in SpectroCoin system
+2 | Pending | Payment (or part of it) was received, but still waiting for confirmation
+3 | Paid | Order is completed
+4 | Failed | Some error occurred
+5 | Expired | Payment was not received in time
+6 | Test | Test order
+
++ Request
+
+    + Headers
+        
+            Accept-Encoding: gzip,deflate
+            Content-Type: application/x-www-form-urlencoded
+            Content-Length: 578
+            Connection: Keep-Alive
+
+    + Body
+    
+            merchantId=169&apiId=1&orderId=Order%20123&payCurrency=BTC&payAmount=1.23456789&receiveCurrency=EUR&receiveAmount=50.0&receivedAmount=0.0&description=My%20special%20order&orderRequestId=123&status=1&sign=r6NuZ0JCBSAGCpPlYG5eXLkSRyOqSncWj8j7LfLIiiWeZdeH0Yy2nZ4Osn0JJY9cqWnoT%2Fvn%2B0KjY7f9tdYQjk67XTFY%2Bn1yg41FkzfbDxF8LQWYinLpnBBCf5AlFACJJ26yBHXMxsPFn67khxOV55AGRJeJcw03anH%2FobjevHiOGkV9%2BjTVLwV553U6Y9Ud995D66f45QpPR54IgBBDhA%2BHNlwockLcEyzCMbwMPs0pnsfVO65x0if8TJ2MtwTCa5c%2B%2FuCAq%2BoafTRV9%2Bd9meTRbC%2BFTDf%2FAMyU9SiltpdIqoZPRypB7faBDZ5YVsQrRPIfD6Wy%2FtS6fb8MiFBnOw%3D%3D
+                    
++ Response 200 (application/json)
+        
+    + Body
+
+            *ok*
+            
+# Group Price Ticker
+
+## Price ticker [/scapi/ticker/{currencyFrom}/{currencyTo}]
+
+The Price Ticker API service allows to get a real-time information of bitcoin exchange rate as well as exchange rates of all currency pairs supported by SpectroCoin. The price is the average of sell and buy prices offered by SpectroCoin. The Price Ticker can be used to track Bitcoin price or output information about Bitcoin price in your applications.
+
+### Example: Get Bitcoin Price [GET]
+
+**Path parameters**
+
+Field | Type | Required | Example
+------|-------|-----------|--------
+currencyFrom | String | + | EUR, GBP, USD, etc.
+currencyTo | String | - | EUR, GBP, USD, etc.
+
+**Response**
+
+Field | Type | Always return | Example
+------|-------|---------------|--------
+currencyFrom | String | + | EUR
+currencyFromScale | Integer | + | 2
+currencyTo | String | + | BTC
+currencyToScale | Integer | + | 8
+last | BigDecimal | + | 610.08
+lastHP | BigDecimal | + | 610.0800000211
+timestamp | Long | + | 1473767715101
+friendlyLast | String | + | 1 BTC = 610.08 EUR
+
++ Parameters
+
+    + currencyFrom: EUR - type currency name (USD, EUR, GBP ...)
+    + currencyTo: BTC - type currency name (USD, EUR, GBP ...) (default - BTC)
+
++ Request
+
+        Connection: Keep-Alive
+        Host: spectrocoin.com
+        
+
++ Response 200
+
+    ```http
+
+        {
+        "currencyFrom":"EUR","currencyFromScale":2,"currencyTo":"BTC","currencyToScale":8,"last":353.14,"timestamp":1479217433607,"friendlyLast":"1 BTC = 353.14 EUR"
+        }
+
+    ```
+# Group Referrals
+
+SpectroCoin allows to provide callback URL and return callbacks to get information about new users, who registered via your referral link.
+## Callback [/referral.com/callback]
+
+If requested, when new user registers user's referral link, SpectroCoin will return callbacks to user's defined url about newly registered referrals.
+Your callback URL must return HTTP Response **200** with content: **\*ok*** for SpectroCoin to confirm callback as successful. If failed, SpectroCoin will retry callback in 3 minutes.
+
+### Example: Callback [POST]
+
+Complex object `ReferralCallback`.
+
+Seq No.     |     Field   | Type        |  Example      | Description   |
+------------| ----------- | ----------- |  -----------  | -----------
+1. | email | String | *****il@email.com | New user hidden email
+2. | referralCode | String | 533867106 | Your referral code
+3. | refTrackId | String | customTrackId | Your tracking id from referral link
+4. | signature | String | f1327b0658958d37dfde5555fe895685242d6348897e0acfcff162af504995544d275d3ac882270a | Generated signature
+
++ Request
+
+    + Headers
+        
+            Accept-Encoding: gzip,deflate
+            Content-Type: application/x-www-form-urlencoded
+            Content-Length: 578
+            Connection: Keep-Alive
+
+    + Body
+    
+            email=*****il@email.com&referralCode=533867106&refTrackId=customTrackId&signature=f1327b0658958d37dfde5555fe895685242d6348897e0acfcff162af504995544d275d3ac882270a
+                    
++ Response 200 (application/json)
+        
+    + Body
+
+            *ok*
+            
